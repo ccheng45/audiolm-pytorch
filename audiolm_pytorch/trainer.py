@@ -27,14 +27,14 @@ import pytorch_warmup as warmup
 
 from einops import rearrange
 
-from audiolm_pytorch.optimizer import get_optimizer
+from optimizer import get_optimizer
 import wandb
 from ema_pytorch import EMA
 
-from audiolm_pytorch.soundstream import SoundStream
-from audiolm_pytorch.encodec_wrapper import EncodecWrapper
+from soundstream import SoundStream
+from encodec_wrapper import EncodecWrapper
 
-from audiolm_pytorch.audiolm_pytorch import (
+from audiolm_pytorch import (
     SemanticTransformer,
     SemanticTransformerWrapper,
     CoarseTransformer,
@@ -45,16 +45,16 @@ from audiolm_pytorch.audiolm_pytorch import (
     HubertWithKmeans
 )
 
-from audiolm_pytorch.data import SoundDataset, get_dataloader
-from audiolm_pytorch.utils import AudioConditionerBase
+from data import SoundDataset, get_dataloader
+from utils import AudioConditionerBase
 
-from audiolm_pytorch.version import __version__
+from version import __version__
 from packaging import version
 
 from accelerate import Accelerator, DistributedType
 from accelerate.utils import DistributedDataParallelKwargs, InitProcessGroupKwargs
 from accelerate.tracking import WandBTracker
-
+from torch.utils.tensorboard import SummaryWriter
 # constants
 
 DEFAULT_SAMPLE_RATE = 16000
@@ -726,7 +726,7 @@ class SemanticTransformerTrainer(nn.Module):
         data_max_length = None,
         data_max_length_seconds = None,
         folder = None,
-        lr = 3e-4,
+        lr = 1e-4,
         grad_accum_every = 1,
         wd = 0.,
         max_grad_norm = 0.5,
@@ -740,7 +740,7 @@ class SemanticTransformerTrainer(nn.Module):
         use_wandb_tracking = False,
         split_batches = False,
         drop_last = False,
-        force_clear_prev_results = None,
+        force_clear_prev_results = True,
         average_valid_loss_over_grad_accum_every: bool = True, # if False, valid loss on a single batch
     ):
         super().__init__()
@@ -855,7 +855,8 @@ class SemanticTransformerTrainer(nn.Module):
 
         self.accelerator.init_trackers("semantic", config=hps)
         self.average_valid_loss_over_grad_accum_every = average_valid_loss_over_grad_accum_every
-
+        self.writer = SummaryWriter('runs/sementic_transformer')
+        
     def save(self, path):
         pkg = dict(
             model = self.accelerator.get_state_dict(self.transformer),
@@ -955,11 +956,11 @@ class SemanticTransformerTrainer(nn.Module):
 
         # log
 
-        self.print(f"{steps}: loss: {logs['loss']}")
-        self.accelerator.log({"train_loss": logs['loss']}, step=steps)
-
-        # sample results every so often
-
+        # self.print(f"{steps}: loss: {logs['loss']}")
+        # self.accelerator.log({"train_loss": logs['loss']}, step=steps)
+        if steps % 100 == 0:
+            self.writer.add_scalar('Training loss', loss, global_step=steps)
+            
         self.accelerator.wait_for_everyone()
 
         if self.is_main and not (steps % self.save_results_every):
@@ -979,6 +980,7 @@ class SemanticTransformerTrainer(nn.Module):
 
             self.print(f'{steps}: valid loss {valid_loss}')
             self.accelerator.log({"valid_loss": valid_loss}, step=steps)
+            self.writer.add_scalar('Validation loss', loss, global_step=steps)
 
         # save model every so often
 

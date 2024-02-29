@@ -538,7 +538,7 @@ class SemanticTransformer(nn.Module):
         rel_pos_bias = rel_pos_bias and not flash_attn
 
         self.num_semantic_tokens = num_semantic_tokens
-
+        print("num_semantic_tokens:",num_semantic_tokens)
         if audio_text_condition:
             has_condition = True
             cond_dim = default(cond_dim, dim)
@@ -658,6 +658,7 @@ class SemanticTransformer(nn.Module):
             labels, ids = ids.clone(), ids[:, :-1]
 
         tokens = get_embeds(self.semantic_embedding, ids)
+        print("tokens ",tokens.shape) # b, l, d, 
 
         start_tokens = repeat(self.start_token, 'd -> b 1 d', b = ids.shape[0])
 
@@ -670,8 +671,7 @@ class SemanticTransformer(nn.Module):
         logits = self.to_logits(tokens)
 
         if not return_kv_cache:
-            return logits
-
+            return logits    
         return logits, kv_cache
 
 class CoarseTransformer(nn.Module):
@@ -1333,6 +1333,7 @@ class SemanticTransformerWrapper(nn.Module):
         mask_prob = 0.15
     ):
         super().__init__()
+        print("SemanticTransformerWrapper init")
         self.wav2vec = wav2vec
         self.transformer = transformer
         self.to(transformer.device)
@@ -1471,7 +1472,9 @@ class SemanticTransformerWrapper(nn.Module):
         return_loss = False,
         **kwargs
     ):
-        assert exists(raw_wave) or exists(semantic_token_ids), 'either raw waveform (raw_wave) is given or semantic token ids are given (semantic_token_ids)'
+        print("-------------------------forward!!!!!!")
+        print("raw_wave", raw_wave.shape)
+        assert exists(raw_wave), 'either raw waveform (raw_wave) is given or semantic token ids are given (semantic_token_ids)'
 
         if exists(self.audio_conditioner):
             assert exists(raw_wave)
@@ -1483,7 +1486,7 @@ class SemanticTransformerWrapper(nn.Module):
             semantic_token_ids = self.wav2vec(raw_wave, flatten = False)
 
         semantic_token_ids = rearrange(semantic_token_ids, 'b ... -> b (...)')
-
+        print("semantic_token_ids", semantic_token_ids.shape)
         if self.training:
             semantic_token_ids = append_eos_id(semantic_token_ids, self.transformer.eos_id)
 
@@ -1497,24 +1500,42 @@ class SemanticTransformerWrapper(nn.Module):
         self_attn_mask = None
         if self.mask_prob > 0. and self.training:
             self_attn_mask = generate_mask_with_prob(input_ids.shape, self.mask_prob, input_ids.device)
-
+        '''
+        self,
+        *,
+        ids = None,
+        return_loss = False,
+        text: Optional[List[str]] = None,
+        text_embeds = None,
+        self_attn_mask = None,
+        cond_drop_prob = None,
+        unique_consecutive = None,
+        kv_cache = None,
+        return_kv_cache = False
+        '''
+        print("input_ids:", input_ids.shape)
+        print("text:", text)
+        print("text_embeds:", text_embeds)
+        print("self_attn_mask:", self_attn_mask)
         logits = self.transformer(
             ids = input_ids,
             text = text,
             text_embeds = text_embeds,
             self_attn_mask = self_attn_mask,
             **kwargs
-        )
-
+        )        
         if not return_loss:
             return logits
-
+        print("before cross_entroy")
+        a = rearrange(logits, 'b n c -> b c n')
+        print("a", a.shape)
+        print("semantic_token_ids", semantic_token_ids.shape)
         loss = F.cross_entropy(
-            rearrange(logits, 'b n c -> b c n'),
+            a,
             semantic_token_ids,
             ignore_index = self.pad_id
         )
-
+        print("loss",loss.item())
         return loss
 
 class CoarseTransformerWrapper(nn.Module):
