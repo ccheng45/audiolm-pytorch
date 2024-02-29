@@ -7,7 +7,7 @@ if version.parse(torch.__version__) >= version.parse('2.0.0'):
 
 from audiolm_pytorch.audiolm_pytorch import AudioLM
 from audiolm_pytorch.soundstream import SoundStream, AudioLMSoundStream, MusicLMSoundStream
-from audiolm_pytorch.encodec import EncodecWrapper
+from audiolm_pytorch.encodec_wrapper import EncodecWrapper
 
 from audiolm_pytorch.audiolm_pytorch import SemanticTransformer, CoarseTransformer, FineTransformer
 from audiolm_pytorch.audiolm_pytorch import FineTransformerWrapper, CoarseTransformerWrapper, SemanticTransformerWrapper

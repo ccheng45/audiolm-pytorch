@@ -27,9 +27,9 @@ from local_attention.transformer import FeedForward, DynamicPositionBias
 
 from gateloop_transformer import SimpleGateLoopLayer as GateLoop
 
-from audiolm_pytorch.utils import curtail_to_multiple
+from utils import curtail_to_multiple
 
-from audiolm_pytorch.version import __version__
+from version import __version__
 from packaging import version
 parsed_version = version.parse(__version__)
 

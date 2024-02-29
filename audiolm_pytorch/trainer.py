@@ -32,7 +32,7 @@ import wandb
 from ema_pytorch import EMA
 
 from audiolm_pytorch.soundstream import SoundStream
-from audiolm_pytorch.encodec import EncodecWrapper
+from audiolm_pytorch.encodec_wrapper import EncodecWrapper
 
 from audiolm_pytorch.audiolm_pytorch import (
     SemanticTransformer,

@@ -7,7 +7,7 @@ from torchaudio.functional import resample
 
 from einops import rearrange, repeat, pack, unpack
 
-from audiolm_pytorch.utils import curtail_to_multiple
+from utils import curtail_to_multiple
 
 # suppress a few warnings
 
