@@ -609,16 +609,18 @@ class SemanticTransformer(nn.Module):
             labels, ids = ids.clone(), ids[:, :-1]
 
         tokens = get_embeds(self.semantic_embedding, ids)
-        print("tokens ",tokens.shape) # b, l, d, 
+        # print("tokens ",tokens.shape) # b, l, d, 
 
         start_tokens = repeat(self.start_token, 'd -> b 1 d', b = ids.shape[0])
 
         tokens = torch.cat((start_tokens, tokens), dim = 1)
+        # print("tokens after stack start_tokens", tokens.shape)
 
         if exists(self_attn_mask):
             self_attn_mask = F.pad(self_attn_mask, (1, 0), value = True)
 
         tokens, kv_cache = self.transformer(tokens, context = text_embeds, self_attn_mask = self_attn_mask, context_mask = text_mask, kv_cache = kv_cache, return_kv_cache = True)
+        # print("tokens after transformer", tokens.shape)
         logits = self.to_logits(tokens)
 
         if not return_kv_cache:

@@ -202,7 +202,7 @@ class SemanticTransformerWrapper(nn.Module):
             semantic_token_ids = self.wav2vec(raw_wave, flatten = False)
 
         semantic_token_ids = rearrange(semantic_token_ids, 'b ... -> b (...)')
-        print("semantic_token_ids", semantic_token_ids.shape)
+
         if self.training:
             semantic_token_ids = append_eos_id(semantic_token_ids, self.transformer.eos_id)
 
@@ -229,10 +229,6 @@ class SemanticTransformerWrapper(nn.Module):
         kv_cache = None,
         return_kv_cache = False
         '''
-        print("input_ids:", input_ids.shape)
-        print("text:", text)
-        print("text_embeds:", text_embeds)
-        print("self_attn_mask:", self_attn_mask)
         logits = self.transformer(
             ids = input_ids,
             text = text,
@@ -242,14 +238,10 @@ class SemanticTransformerWrapper(nn.Module):
         )        
         if not return_loss:
             return logits
-        print("before cross_entroy")
-        a = rearrange(logits, 'b n c -> b c n')
-        print("a", a.shape)
-        print("semantic_token_ids", semantic_token_ids.shape)
+
         loss = F.cross_entropy(
-            a,
+            rearrange(logits, 'b n c -> b c n'),
             semantic_token_ids,
             ignore_index = self.pad_id
         )
-        print("loss",loss.item())
         return loss
