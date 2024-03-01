@@ -36,13 +36,16 @@ from encodec_wrapper import EncodecWrapper
 
 from audiolm_pytorch import (
     SemanticTransformer,
-    SemanticTransformerWrapper,
     CoarseTransformer,
     CoarseTransformerWrapper,
     FineTransformer,
     FineTransformerWrapper,
     FairseqVQWav2Vec,
     HubertWithKmeans
+)
+
+from wrappers import (
+    SemanticTransformerWrapper,
 )
 
 from data import SoundDataset, get_dataloader

@@ -47,7 +47,7 @@ class SoundDataset(Dataset):
 
         files = [file for ext in exts for file in path.glob(f'**/*.{ext}')]
         assert len(files) > 0, 'no sound files found'
-
+        print("len(files)", len(files))
         self.files = files
 
         self.max_length = max_length
