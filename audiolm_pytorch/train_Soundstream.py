@@ -3,7 +3,7 @@ import torch
 from soundstream import SoundStream
 from trainer import SoundStreamTrainer
 
-dataset_folder= 'data/train-clean-100' 
+dataset_folder= 'data/' 
 
 soundstream = SoundStream(
     codebook_size = 1024,
