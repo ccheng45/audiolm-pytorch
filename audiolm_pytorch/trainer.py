@@ -37,7 +37,6 @@ from encodec_wrapper import EncodecWrapper
 from audiolm_pytorch import (
     SemanticTransformer,
     CoarseTransformer,
-    CoarseTransformerWrapper,
     FineTransformer,
     FineTransformerWrapper,
     FairseqVQWav2Vec,
@@ -46,6 +45,7 @@ from audiolm_pytorch import (
 
 from wrappers import (
     SemanticTransformerWrapper,
+    CoarseTransformerWrapper,
 )
 
 from data import SoundDataset, get_dataloader
@@ -432,7 +432,8 @@ class SoundStreamTrainer(nn.Module):
         self.tracker_hps = hyperparameters
 
         assert self.accelerator.distributed_type != DistributedType.FSDP, 'FSDP not supported for soundstream trainer due to complex-valued stft discriminator'
-
+        self.writer = SummaryWriter('runs/soundstream')
+        
     @property
     def ema_tokenizer(self):
         return self.ema_soundstream.ema_model
@@ -639,7 +640,10 @@ class SoundStreamTrainer(nn.Module):
         # build pretty printed losses
 
         losses_str = f"{steps}: soundstream total loss: {logs['loss']:.3f}, soundstream recon loss: {logs['recon_loss']:.3f}"
-
+        if steps % 10 == 0:
+            self.writer.add_scalar('Training loss', logs['loss'], global_step=steps)
+            self.writer.add_scalar('recon loss', logs['recon_loss'], global_step=steps)
+        
         if log_losses:
             self.log(**logs)
 
