@@ -640,9 +640,9 @@ class SoundStreamTrainer(nn.Module):
         # build pretty printed losses
 
         losses_str = f"{steps}: soundstream total loss: {logs['loss']:.3f}, soundstream recon loss: {logs['recon_loss']:.3f}"
-        if steps % 10 == 0:
-            self.writer.add_scalar('Training loss', logs['loss'], global_step=steps)
-            self.writer.add_scalar('recon loss', logs['recon_loss'], global_step=steps)
+        
+        self.writer.add_scalar('Training total loss', logs['loss'], global_step=steps)
+        self.writer.add_scalar('Training recon loss', logs['recon_loss'], global_step=steps)
         
         if log_losses:
             self.log(**logs)
@@ -965,7 +965,7 @@ class SemanticTransformerTrainer(nn.Module):
 
         # self.print(f"{steps}: loss: {logs['loss']}")
         # self.accelerator.log({"train_loss": logs['loss']}, step=steps)
-        if steps % 100 == 0:
+        if steps % 10 == 0:
             self.writer.add_scalar('Training loss', loss, global_step=steps)
             
         self.accelerator.wait_for_everyone()
