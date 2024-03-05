@@ -8,25 +8,34 @@ from einops import rearrange, repeat, reduce
 #     rq_num_quantizers = 8,
 # )
 
-path = 'results/soundstream.444.pt' 
+path = 'results/soundstream.900.pt' 
 model = SoundStream.init_and_load_from(path).to("cuda")
-
+model.eval()
 x, sr = torchaudio.load('input.wav')
 x, sr = torchaudio.functional.resample(x, sr, 16000), 16000
 
 x = x.to("cuda")
 print("x", x.shape)
 with torch.no_grad():
-    # y = model.encode(x)
-    y = model.tokenize(x)
-    print("y shape", y.shape)
+    # y = model.tokenize(x)
+    # print("y shape", y.shape)
     
-    z = model.decode_from_codebook_indices(y)
+    # z = model.decode_from_codebook_indices(y)
+    # print("z", z.shape)
+        
+    # z_flat = rearrange(z, '1 1 n -> 1 n')
+    # print("z_flat", z_flat.shape)
+    
+    # z_flat = z_flat.to("cpu")
+    # torchaudio.save('output.wav',z_flat, sr)
+    
+    # 
+    # try 2
+    z = model(x, return_recons_only = True)
     print("z", z.shape)
-    # y = y[:, :, :4]  # if you want to reduce code size.
-    # z = model.decode(y)
     
-    z = rearrange(z, '1 1 n -> 1 n')
-    print("z_flat", z.shape)
-    z = z.to("cpu")
-    torchaudio.save('output.wav',z, sr)
+    z_flat = rearrange(z, '1 1 n -> 1 n')
+    print("z_flat", z_flat.shape)
+    
+    z_flat = z_flat.to("cpu")
+    torchaudio.save('output.wav',z_flat, sr)
