@@ -24,21 +24,25 @@ if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
 # Path where the downloaded file will be saved, relative to the current directory
-save_path = os.path.join(data_dir, 'dev-clean.tar.gz')
-libr = os.path.join(data_dir, 'LibriSpeech')
 
+def downloadLibriSpeech(sub):
+    file_name = sub+ '.tar.gz'
+    save_path = os.path.join(data_dir, file_name)
+    libr = os.path.join(data_dir, 'LibriSpeech')
+    url = "https://us.openslr.org/resources/12/"+sub+".tar.gz"
 
-url = "https://us.openslr.org/resources/12/dev-clean.tar.gz"
+    print("Downloading the file of ", sub)
+    if not os.path.isfile(save_path):
+        urllib.request.urlretrieve(url, save_path, reporthook=download_progress)
 
-print("Downloading the file...")
-if not os.path.isfile(save_path):
-    urllib.request.urlretrieve(url, save_path, reporthook=download_progress)
+    print("Extracting the file...", sub)
+    if not os.path.isdir(libr):
+        with tarfile.open(save_path, "r:gz") as tar:
+            tar.extractall(path=libr)
+        print("Extraction completed.", sub)
 
-print("Extracting the file...")
-if not os.path.isdir(libr):
-    with tarfile.open(save_path, "r:gz") as tar:
-        tar.extractall(path=libr)
-    print("Extraction completed.")
+# downloadLibriSpeech("dev-clean")
+downloadLibriSpeech("train-clean-100")
 
 # Hubert
 hubert_ckpt = "hubert/hubert_base_ls960.pt"
@@ -46,6 +50,7 @@ hubert_quantizer = f"hubert/hubert_base_ls960_L9_km500.bin"  # listed in row "Hu
 
 if not os.path.isdir("hubert"):
     os.makedirs("hubert")
+
 print("downloading hubert ckpt")
 if not os.path.isfile(hubert_ckpt):
     
