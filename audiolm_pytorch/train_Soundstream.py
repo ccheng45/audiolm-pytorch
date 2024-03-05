@@ -23,5 +23,5 @@ trainer = SoundStreamTrainer(
 ).cuda()
 # NOTE: I changed num_train_steps to 9 (aka 8 + 1) from 10000 to make things go faster for demo purposes
 # adjusting save_*_every variables for the same reason
-
-trainer.train()
+with trainer.wandb_tracker(project = 'soundstream', run = 'baseline'):
+    trainer.train()

@@ -267,18 +267,19 @@ class SoundStreamTrainer(nn.Module):
         assert not (exists(accelerator) and len(accelerate_kwargs) > 0)
 
         self.use_wandb_tracking = use_wandb_tracking
-
+        
         if not exists(self.accelerator):
             init_process_kwargs = InitProcessGroupKwargs(timeout = timedelta(seconds = init_process_group_timeout_seconds))
-
             if use_wandb_tracking:
-                accelerate_kwargs.update(log_with = 'wandb')
+                accelerate_kwargs.update(log_with = 'wandb')            
 
             self.accelerator = Accelerator(
                 kwargs_handlers = [DEFAULT_DDP_KWARGS, init_process_kwargs],
                 split_batches = split_batches,
                 **accelerate_kwargs
             )
+        if use_wandb_tracking:
+            accelerate_kwargs.update(log_with = 'wandb')
 
         self.soundstream = soundstream
 
