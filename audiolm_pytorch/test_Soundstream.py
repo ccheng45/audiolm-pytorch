@@ -8,7 +8,7 @@ from einops import rearrange, repeat, reduce
 #     rq_num_quantizers = 8,
 # )
 
-path = 'results/soundstream.900.pt' 
+path = 'results/soundstream.20000.pt' 
 model = SoundStream.init_and_load_from(path).to("cuda")
 model.eval()
 x, sr = torchaudio.load('input.wav')
